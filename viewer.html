@@ -117,6 +117,16 @@
     line-height: 1.4;
   }
 
+  /* ── 글리치 애니메이션 전용 캔버스 (노이즈 아래) ── */
+  #glitch-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9;
+    pointer-events: none;
+  }
+
   /* ── 오염 캔버스 레이어 ── */
   #noise-canvas {
     position: absolute;
@@ -279,6 +289,9 @@
   <div class="glitch-line"></div>
 </div>
 
+<!-- 글리치 전용 캔버스 (노이즈 아래, 지워진 영역에서 보임) -->
+<canvas id="glitch-canvas"></canvas>
+
 <!-- 노이즈 캔버스 -->
 <canvas id="noise-canvas"></canvas>
 
@@ -328,20 +341,23 @@
   // ── 캔버스 설정 ──
   const canvas = document.getElementById('noise-canvas');
   const ctx = canvas.getContext('2d');
+
+  // 글리치 전용 캔버스 (지워진 영역에서 아래로 보이는 애니메이션용)
+  const gCanvas = document.getElementById('glitch-canvas');
+  const gCtx = gCanvas.getContext('2d');
+
   let W, H;
-  let revealed = 0;
-  let totalPixels = 0;
   let isDone = false;
 
   function resize() {
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    totalPixels = W * H;
-    drawNoise();
+    gCanvas.width  = W;
+    gCanvas.height = H;
+    drawNoise();   // 리사이즈 시에만 노이즈 재생성
   }
 
   // 노이즈 타일 (오프스크린)
-  let noiseTile;
   function makeNoiseTile(w, h) {
     const oc = document.createElement('canvas');
     oc.width = w; oc.height = h;
@@ -352,7 +368,6 @@
     for (let i = 0; i < d.length; i += 4) {
       const r = Math.random();
       if (r < 0.05) {
-        // glitch color stripe
         const c = purples[Math.floor(Math.random() * purples.length)];
         d[i]=c[0]; d[i+1]=c[1]; d[i+2]=c[2]; d[i+3]=255;
       } else {
@@ -364,8 +379,9 @@
     return oc;
   }
 
+  // 노이즈는 초기 1회(또는 리사이즈 시)에만 그림 — 지워진 영역 복원 없음
   function drawNoise() {
-    noiseTile = makeNoiseTile(W, H);
+    const noiseTile = makeNoiseTile(W, H);
     ctx.clearRect(0, 0, W, H);
     ctx.drawImage(noiseTile, 0, 0);
 
@@ -378,16 +394,19 @@
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'source-over';
+  }
 
-    // glitch 수평선
+  // 글리치 수평선은 별도 캔버스에서만 그림 (노이즈 캔버스 건드리지 않음)
+  function drawGlitchLines() {
+    gCtx.clearRect(0, 0, W, H);
     for (let i = 0; i < 18; i++) {
       const y = Math.random() * H;
       const hh = Math.random() * 3 + 1;
-      ctx.globalAlpha = Math.random() * 0.3 + 0.05;
-      ctx.fillStyle = Math.random() > 0.5 ? '#a855f7' : '#06b6d4';
-      ctx.fillRect(0, y, W, hh);
+      gCtx.globalAlpha = Math.random() * 0.25 + 0.04;
+      gCtx.fillStyle = Math.random() > 0.5 ? '#a855f7' : '#06b6d4';
+      gCtx.fillRect(0, y, W, hh);
     }
-    ctx.globalAlpha = 1;
+    gCtx.globalAlpha = 1;
   }
 
   // ── 벗겨내기 ──
@@ -438,6 +457,8 @@
     // 캔버스 페이드아웃
     canvas.style.transition = 'opacity 1.2s';
     canvas.style.opacity = '0';
+    gCanvas.style.transition = 'opacity 1.2s';
+    gCanvas.style.opacity = '0';
     document.getElementById('glitch-overlay').style.opacity = '0';
     document.getElementById('glitch-overlay').style.transition = 'opacity 1s';
 
@@ -449,6 +470,7 @@
 
     setTimeout(() => {
       canvas.style.display = 'none';
+      gCanvas.style.display = 'none';
     }, 1500);
   }
 
@@ -509,10 +531,10 @@
   });
   canvas.addEventListener('mouseup', () => { isDown = false; });
 
-  // ── 글리치 애니메이션 반복 ──
+  // ── 글리치 애니메이션 반복 (별도 캔버스에서만, 노이즈 캔버스 건드리지 않음) ──
   function animGlitch() {
     if (isDone) return;
-    drawNoise();
+    drawGlitchLines();
     setTimeout(animGlitch, 120 + Math.random() * 200);
   }
 
