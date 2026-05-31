@@ -274,11 +274,11 @@
   <img id="char-img" src="" alt="character">
   <div id="profile-card">
     <div class="profile-tag">— CLASSIFIED FILE —</div>
-    <div class="profile-name" id="p-name">???</div>
+    <div class="profile-name" id="p-name">이름/div>
     <div class="profile-divider"></div>
-    <div class="profile-row"><span class="profile-label">AFFIL</span><span class="profile-value" id="p-affil">—</span></div>
-    <div class="profile-row"><span class="profile-label">CODE</span><span class="profile-value" id="p-code">—</span></div>
-    <div class="profile-row"><span class="profile-label">TRAIT</span><span class="profile-value" id="p-trait">—</span></div>
+    <div class="profile-row"><span class="profile-label">소속</span><span class="profile-value" id="p-affil">—</span></div>
+    <div class="profile-row"><span class="profile-label">코드명</span><span class="profile-value" id="p-code">—</span></div>
+    <div class="profile-row"><span class="profile-label">특징</span><span class="profile-value" id="p-trait">—</span></div>
   </div>
 </div>
 
@@ -454,6 +454,8 @@
 
   function complete() {
     isDone = true;
+        // 힌트 숨기기 추가
+    document.getElementById('hint').classList.add('hidden');
     // 캔버스 페이드아웃
     canvas.style.transition = 'opacity 1.2s';
     canvas.style.opacity = '0';
