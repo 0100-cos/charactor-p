@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CLASSIFIED — 기밀 해제</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@300;400;700&display=swap');
 
@@ -239,6 +240,36 @@
     to   { width: 80px; height: 80px; opacity: 0; transform: translate(-50%, -50%) scale(1); }
   }
 
+  /* 이미지 저장 버튼 */
+  #save-btn {
+    position: absolute;
+    bottom: 28px;
+    right: 24px;
+    z-index: 30;
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s, transform 0.6s;
+    pointer-events: none;
+  }
+
+  #save-btn.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+
+  #save-btn:active { background: #8b3cf7; }
+
   /* 노 데이터 상태 */
   #no-data {
     position: absolute;
@@ -274,11 +305,11 @@
   <img id="char-img" src="" alt="character">
   <div id="profile-card">
     <div class="profile-tag">— CLASSIFIED FILE —</div>
-    <div class="profile-name" id="p-name">이름/div>
+    <div class="profile-name" id="p-name">???</div>
     <div class="profile-divider"></div>
-    <div class="profile-row"><span class="profile-label">소속</span><span class="profile-value" id="p-affil">—</span></div>
-    <div class="profile-row"><span class="profile-label">코드명</span><span class="profile-value" id="p-code">—</span></div>
-    <div class="profile-row"><span class="profile-label">특징</span><span class="profile-value" id="p-trait">—</span></div>
+    <div class="profile-row"><span class="profile-label">AFFIL</span><span class="profile-value" id="p-affil">—</span></div>
+    <div class="profile-row"><span class="profile-label">CODE</span><span class="profile-value" id="p-code">—</span></div>
+    <div class="profile-row"><span class="profile-label">TRAIT</span><span class="profile-value" id="p-trait">—</span></div>
   </div>
 </div>
 
@@ -300,6 +331,9 @@
 
 <!-- 완료 -->
 <div id="complete-msg"><span>[ 기밀 해제 완료 ]</span></div>
+
+<!-- 이미지 저장 버튼 -->
+<button id="save-btn" onclick="saveAsImage()">이미지 저장</button>
 
 <script>
 (function() {
@@ -454,7 +488,6 @@
 
   function complete() {
     isDone = true;
-        // 힌트 숨기기 추가
     document.getElementById('hint').classList.add('hidden');
     // 캔버스 페이드아웃
     canvas.style.transition = 'opacity 1.2s';
@@ -464,10 +497,11 @@
     document.getElementById('glitch-overlay').style.opacity = '0';
     document.getElementById('glitch-overlay').style.transition = 'opacity 1s';
 
-    // 프로필 카드 등장
+    // 프로필 카드 + 저장 버튼 등장
     setTimeout(() => {
       document.getElementById('profile-card').classList.add('revealed');
       document.getElementById('complete-msg').classList.add('show');
+      document.getElementById('save-btn').classList.add('show');
     }, 400);
 
     setTimeout(() => {
@@ -532,6 +566,30 @@
     lastPos = {x: e.clientX, y: e.clientY};
   });
   canvas.addEventListener('mouseup', () => { isDown = false; });
+
+  // ── 이미지 저장 ──
+  window.saveAsImage = function() {
+    const btn = document.getElementById('save-btn');
+    btn.textContent = '저장 중...';
+    btn.style.pointerEvents = 'none';
+
+    html2canvas(document.getElementById('character-layer'), {
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#0a0a0a',
+      scale: 2
+    }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = (document.getElementById('p-name').textContent || 'profile') + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      btn.textContent = '이미지 저장';
+      btn.style.pointerEvents = 'all';
+    }).catch(() => {
+      btn.textContent = '저장 실패';
+      setTimeout(() => { btn.textContent = '이미지 저장'; btn.style.pointerEvents = 'all'; }, 2000);
+    });
+  };
 
   // ── 글리치 애니메이션 반복 (별도 캔버스에서만, 노이즈 캔버스 건드리지 않음) ──
   function animGlitch() {

@@ -162,7 +162,7 @@
 
   ================================================================ -->
 <script>
-  const EDITOR_PASSWORD = 'mede';  // ← 여기서 비밀번호 변경
+  const EDITOR_PASSWORD = 'persona';  // ← 여기서 비밀번호 변경
   const LOCK_ENABLED    = true;          // ← false 로 바꾸면 잠금 비활성화
 </script>
 
@@ -173,8 +173,10 @@
   <div class="lock-sub">CLASSIFIED EDITOR</div>
   <div class="lock-deco"></div>
   <input class="lock-input" type="password" id="lock-input" placeholder="••••••••"
-    maxlength="30" autocomplete="current-password"
-    onkeydown="if(event.key==='Enter')tryUnlock()">
+  maxlength="30" autocomplete="off"
+  onkeydown="if(event.key==='Enter')tryUnlock()"
+  onfocus="this.removeAttribute('readonly')"
+  readonly>
   <button class="lock-btn" onclick="tryUnlock()">ENTER</button>
   <div class="lock-error" id="lock-error"></div>
 </div>
@@ -324,7 +326,7 @@
     <div class="url-box" id="share-url-box">생성 중...</div>
     <div class="modal-actions">
       <button class="btn-copy" id="copy-btn" onclick="copyUrl()">링크 복사</button>
-      <button class="btn-native-share" onclick="nativeShare()">공유하기</button>
+      <button class="btn-native-share" onclick="nativeShare()">링크 공유</button>
     </div>
     <button class="modal-close-btn" onclick="closeModal()">닫기</button>
   </div>
@@ -628,6 +630,7 @@ function showToast(msg){
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2200);
 }
+
 </script>
 </body>
 </html>
