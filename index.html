@@ -326,7 +326,7 @@
     <div class="url-box" id="share-url-box">생성 중...</div>
     <div class="modal-actions">
       <button class="btn-copy" id="copy-btn" onclick="copyUrl()">링크 복사</button>
-      <button class="btn-native-share" onclick="nativeShare()">링크 공유</button>
+      <button class="btn-native-share" onclick="openViewer()">보러가기</button>
     </div>
     <button class="modal-close-btn" onclick="closeModal()">닫기</button>
   </div>
@@ -599,6 +599,12 @@ function openShareModal() {
     box.textContent='⚠ 링크 생성 실패. 이미지가 너무 크면 URL 모드를 사용하세요.';
     currentShareUrl=''; btn.disabled=true;
   }
+}
+
+//페이지 보러가기
+function openViewer() {
+  if (!currentShareUrl) return;
+  window.open(currentShareUrl, '_blank');
 }
 
 function closeModal(){ document.getElementById('share-modal').classList.remove('open'); }

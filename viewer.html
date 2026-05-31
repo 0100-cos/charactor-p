@@ -568,28 +568,36 @@
   canvas.addEventListener('mouseup', () => { isDown = false; });
 
   // ── 이미지 저장 ──
-  window.saveAsImage = function() {
-    const btn = document.getElementById('save-btn');
-    btn.textContent = '저장 중...';
-    btn.style.pointerEvents = 'none';
+window.saveAsImage = function() {
+  const btn = document.getElementById('save-btn');
+  btn.textContent = '저장 중...';
+  btn.style.pointerEvents = 'none';
 
-    html2canvas(document.getElementById('character-layer'), {
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#0a0a0a',
-      scale: 2
-    }).then(canvas => {
-      const link = document.createElement('a');
-      link.download = (document.getElementById('p-name').textContent || 'profile') + '.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      btn.textContent = '이미지 저장';
-      btn.style.pointerEvents = 'all';
-    }).catch(() => {
-      btn.textContent = '저장 실패';
-      setTimeout(() => { btn.textContent = '이미지 저장'; btn.style.pointerEvents = 'all'; }, 2000);
-    });
-  };
+  const target = document.getElementById('character-layer');
+
+  html2canvas(target, {
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: '#0a0a0a',
+    scale: window.devicePixelRatio || 1,  // 화면 픽셀 비율 그대로
+    width: window.innerWidth,
+    height: window.innerHeight,
+    windowWidth: window.innerWidth,
+    windowHeight: window.innerHeight,
+    x: 0,
+    y: 0,
+  }).then(canvas => {
+    const link = document.createElement('a');
+    link.download = (document.getElementById('p-name').textContent || 'profile') + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    btn.textContent = '이미지 저장';
+    btn.style.pointerEvents = 'all';
+  }).catch(() => {
+    btn.textContent = '저장 실패';
+    setTimeout(() => { btn.textContent = '이미지 저장'; btn.style.pointerEvents = 'all'; }, 2000);
+  });
+};
 
   // ── 글리치 애니메이션 반복 (별도 캔버스에서만, 노이즈 캔버스 건드리지 않음) ──
   function animGlitch() {
