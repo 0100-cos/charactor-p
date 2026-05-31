@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>CLASSIFIED — 기밀 해제</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@300;400;700&display=swap');
 
@@ -568,35 +567,71 @@
   canvas.addEventListener('mouseup', () => { isDown = false; });
 
   // ── 이미지 저장 ──
-window.saveAsImage = function() {
+wwindow.saveAsImage = function() {
   const btn = document.getElementById('save-btn');
   btn.textContent = '저장 중...';
   btn.style.pointerEvents = 'none';
 
-  const target = document.getElementById('character-layer');
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1;
 
-  html2canvas(target, {
-    useCORS: true,
-    allowTaint: false,
-    backgroundColor: '#0a0a0a',
-    scale: window.devicePixelRatio || 1,  // 화면 픽셀 비율 그대로
-    width: window.innerWidth,
-    height: window.innerHeight,
-    windowWidth: window.innerWidth,
-    windowHeight: window.innerHeight,
-    x: 0,
-    y: 0,
-  }).then(canvas => {
-    const link = document.createElement('a');
-    link.download = (document.getElementById('p-name').textContent || 'profile') + '.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    btn.textContent = '이미지 저장';
-    btn.style.pointerEvents = 'all';
-  }).catch(() => {
-    btn.textContent = '저장 실패';
-    setTimeout(() => { btn.textContent = '이미지 저장'; btn.style.pointerEvents = 'all'; }, 2000);
+  const out = document.createElement('canvas');
+  out.width  = W * dpr;
+  out.height = H * dpr;
+  const oc = out.getContext('2d');
+  oc.scale(dpr, dpr);
+
+  // 1. 배경
+  oc.fillStyle = '#0a0a0a';
+  oc.fillRect(0, 0, W, H);
+
+  // 2. 캐릭터 이미지
+  const charImg = document.getElementById('char-img');
+  if (charImg && charImg.src) {
+    // object-fit: cover 재현
+    const iw = charImg.naturalWidth, ih = charImg.naturalHeight;
+    const scale = Math.max(W / iw, H / ih);
+    const dw = iw * scale, dh = ih * scale;
+    const dx = (W - dw) / 2, dy = (H - dh) / 2;
+    oc.drawImage(charImg, dx, dy, dw, dh);
+  }
+
+  // 3. 프로필 카드 그라디언트
+  const grad = oc.createLinearGradient(0, H * 0.4, 0, H);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(0.4, 'rgba(0,0,0,0.98)');
+  oc.fillStyle = grad;
+  oc.fillRect(0, 0, W, H);
+
+  // 4. 프로필 텍스트 (화면 위치 그대로)
+  const card = document.getElementById('profile-card');
+  const cardRect = card.getBoundingClientRect();
+  const rows = card.querySelectorAll('.profile-label, .profile-name, .profile-tag, .profile-value, .profile-divider');
+
+  rows.forEach(el => {
+    const r = el.getBoundingClientRect();
+    const style = getComputedStyle(el);
+
+    if (el.classList.contains('profile-divider')) {
+      oc.fillStyle = '#6b21e8';
+      oc.fillRect(r.left, r.top, r.width, r.height);
+      return;
+    }
+
+    oc.fillStyle = style.color;
+    oc.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    oc.textBaseline = 'top';
+    oc.fillText(el.textContent, r.left, r.top);
   });
+
+  const link = document.createElement('a');
+  link.download = (document.getElementById('p-name').textContent || 'profile') + '.png';
+  link.href = out.toDataURL('image/png');
+  link.click();
+
+  btn.textContent = '이미지 저장';
+  btn.style.pointerEvents = 'all';
 };
 
   // ── 글리치 애니메이션 반복 (별도 캔버스에서만, 노이즈 캔버스 건드리지 않음) ──
